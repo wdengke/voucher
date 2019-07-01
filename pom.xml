@@ -12,6 +12,7 @@
     <artifactId>voucher</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>voucher</name>
+    <packaging>jar</packaging>
     <description>Demo project for Spring Boot</description>
 
     <properties>
@@ -46,11 +47,17 @@
         </dependency>
     </dependencies>
 
+    <!--mvn -Dmaven.test.skip -U clean package -->
+    <!--mvn -Dmaven.test.skip -U clean install -->
+
     <build>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <mainClass>com.dengke.excel.voucher.VoucherApplication</mainClass>
+                </configuration>
             </plugin>
         </plugins>
     </build>
