@@ -32,8 +32,12 @@ import java.util.stream.Collectors;
 @RequestMapping("/voucher")
 public class VoucherController {
 
+
+    private WriteExcel writeExcel;
     @Autowired
-    WriteExcel writeExcel;
+    public  VoucherController(WriteExcel writeExcel){
+        this.writeExcel=writeExcel;
+    }
 
     @RequestMapping("/")
     public String index(){
@@ -87,6 +91,81 @@ public class VoucherController {
             ex.printStackTrace();
 
         }
+        return "voucher/uploadStatus";
+    }
+
+
+    @RequestMapping("/summary/")
+    public String summary(){
+        return "voucher/test";
+    }
+
+    @PostMapping("/upload/summary")
+    public String summaryUpload(@RequestParam("file")MultipartFile file, Model model){
+        if (file.isEmpty()){
+            model.addAttribute("message","The file is empty!");
+            return "voucher/uploadStatus";
+        }
+        boolean isSuccess=true;
+        try {
+            SimpleDateFormat df = new SimpleDateFormat("yyyyMMddHHmmss");//设置日期格式
+            String fileName=df.format(new Date())+"_"+file.getOriginalFilename();
+            byte[]bytes=file.getBytes();
+
+            Path path= Paths.get("C:\\VoucherUpload/"+ fileName);
+            Files.write(path, bytes);
+
+
+            InputStream inputStream= file.getInputStream();
+            try {
+                ExcelListener excelListener = new ExcelListener();
+                EasyExcelFactory.readBySax(inputStream, new Sheet(1, 1, Voucher.class), excelListener);
+
+                List<Voucher>vouchers= excelListener.getDatas();
+                List<Voucher>summaryVouchers=new ArrayList<>();
+                vouchers.stream()
+                        .collect(Collectors
+                        .groupingBy(
+                                voucher -> new Voucher(
+                                        voucher.getPkid(),
+                                        voucher.getCompanyNo(),
+                                        voucher.getVoucherType(),
+                                        voucher.getVoucherNo(),
+                                        voucher.getDescript(),
+                                        voucher.getAccountId(),
+                                        voucher.getLoanType(),
+                                        voucher.getSecondAccountType(),
+                                        voucher.getSecondAccountName(),
+                                        voucher.getSecondAccountId()),
+                                Collectors.summarizingDouble(voucher->voucher.getAmount())
+                        )).forEach((k,v)->{
+                            k.setAmount(v.getSum());
+                            summaryVouchers.add(k);
+                        });
+
+                //写入excel输出
+
+                writeExcel.write(summaryVouchers,new Date(),"0"+summaryVouchers.get(0).getCompanyNo());
+
+            }catch(Exception e){
+                e.printStackTrace();
+                isSuccess=false;
+            }
+            finally {
+                try {
+                    inputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    isSuccess=false;
+                }
+            }
+
+
+        }catch (Exception ex){
+            ex.printStackTrace();
+            isSuccess=false;
+        }
+        model.addAttribute("message", isSuccess?"success":"Exception");
         return "voucher/uploadStatus";
     }
 

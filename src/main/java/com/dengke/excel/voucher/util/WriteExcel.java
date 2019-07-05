@@ -20,12 +20,17 @@ import java.util.stream.Collectors;
 @Component
 public class WriteExcel {
 
+
+    private SecondTypeUtil secondTypeUtil;
+
     @Autowired
-    SecondTypeUtil secondTypeUtil;
+    public WriteExcel(SecondTypeUtil secondTypeUtil){
+        this.secondTypeUtil=secondTypeUtil;
+    }
 
     public void write(List<Voucher> vouchers, Date date, String companyNo) throws IOException {
 
-
+        System.out.println("开始写文件....");
         //读取模板
         InputStream input = Thread.currentThread().getContextClassLoader().getResourceAsStream("static/template.xlsx");
 
@@ -56,19 +61,25 @@ public class WriteExcel {
                 String type1 = getSecondType(voucher, 1);
                 if (type1 != null && type1.length() != 0) {
                     row1.createCell(4).setCellFormula("VLOOKUP(B" + (i + 1) + ",科目!E:F,2,0)");
-                    row1.createCell(5).setCellValue(getAccountId(type1, voucher));
+                    XSSFCell cell1= row1.createCell(5);
+                    cell1.setCellType(CellType.STRING);
+                    cell1.setCellValue(getAccountId(type1, voucher));
                 }
                 //核算维度2
                 String type2 = getSecondType(voucher, 2);
                 if (type2 != null && type2.length() != 0) {
                     row1.createCell(6).setCellFormula("VLOOKUP(B" + (i + 1) + ",科目!G:H,2,0)");
-                    row1.createCell(7).setCellValue(getAccountId(type2, voucher));
+                    XSSFCell cell2=row1.createCell(7);
+                    cell2.setCellType(CellType.STRING);
+                    cell2.setCellValue(getAccountId(type2, voucher));
                 }
                 //核算维度3
                 String type3 = getSecondType(voucher, 3);
                 if (type3 != null && type3.length() != 0) {
                     row1.createCell(8).setCellFormula("VLOOKUP(B" + (i + 1) + ",科目!I:J,2,0)");
-                    row1.createCell(9).setCellValue(getAccountId(type3, voucher));
+                    XSSFCell cell3=row1.createCell(8);
+                    cell3.setCellType(CellType.STRING);
+                    cell3.setCellValue(getAccountId(type3, voucher));
                 }
 
                 //核算维度4
@@ -76,7 +87,9 @@ public class WriteExcel {
                 if (type4 != null && type4.length() != 0) {
                     row1.createCell(10).setCellFormula("VLOOKUP(B" + (i + 1) + ",科目!K:L,2,0)");
                     String temp = getAccountId(type4, voucher);
-                    row1.createCell(11).setCellValue(temp);
+                    XSSFCell cell4=row1.createCell(8);
+                    cell4.setCellType(CellType.STRING);
+                    cell4.setCellValue(getAccountId(type4, voucher));
                 }
             }
 
@@ -116,7 +129,7 @@ public class WriteExcel {
     }
 
     private static String getAccountId(String type, Voucher voucher) {
-        if (type == null || type == "") return "";
+        if (type == null || type.equals("")) return "";
         Hashtable<String, String> dictionary = new Hashtable<String, String>();
         dictionary.put("Supplier", "供应商");
         dictionary.put("Customer", "客户");
@@ -138,10 +151,23 @@ public class WriteExcel {
 
         String[] types = voucher.getSecondAccountType().split(",");
         String[] ids = voucher.getSecondAccountId().split(",");
-        for (int i = 0; i < types.length; i++) {
-            if (type.equals(dictionary.get(types[i]))) {
-                return ids[i];
+        try {
+            for (int i = 0; i < types.length; i++) {
+                if (type.equals(dictionary.get(types[i]))) {
+                    String accountId="";
+                    if ("Company".equals(type)){
+                        String[]company= ids[i].split(".");
+                        String companyNo=company[1].length()==3?company[1]+"0":company[1];
+                        accountId="01."+companyNo;
+                        System.out.println(accountId);
+                    }else {
+                        accountId=ids[i];
+                    }
+                    return accountId;
+                }
             }
+        }catch (Exception ex){
+            System.out.println(voucher.toString());
         }
         return "";
     }
