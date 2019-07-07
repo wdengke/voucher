@@ -16,8 +16,10 @@ public class ExcelListener extends AnalysisEventListener {
 
     @Override
     public void invoke(Object o, AnalysisContext analysisContext) {
-        datas.add((Voucher) o);
-
+        Voucher voucher=(Voucher)o;
+        if (!"".equals(voucher.getCompanyNo())){
+            datas.add((Voucher) o);
+        }
     }
 
     @Override

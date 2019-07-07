@@ -22,10 +22,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Controller
@@ -65,13 +62,16 @@ public class VoucherController {
 
                 List<Voucher>vouchers= excelListener.getDatas();
 
-                Map<String,List<Voucher>>groupBy=vouchers.stream().collect(Collectors.groupingBy(Voucher::getCompanyNo));
+                Map<Optional<String>,List<Voucher>>groupBy=vouchers.stream().collect(Collectors.groupingBy(v-> Optional.ofNullable(v.getCompanyNo())));
 
-                for (String companyNO:groupBy.keySet()) {
-                    String newFileName=companyNO.startsWith("0")?companyNO:"0"+companyNO;
-                    writeExcel.write(groupBy.get(companyNO),new Date(),newFileName);
-
+                for (Optional<String> companyNO:groupBy.keySet()) {
+                    if (companyNO.isPresent()){
+                        String newFileName=companyNO.get().startsWith("0")?companyNO.get():"0"+companyNO;
+                        writeExcel.write(groupBy.get(companyNO),new Date(),newFileName);
+                    }
                 }
+
+
 
 
 
@@ -101,7 +101,7 @@ public class VoucherController {
     }
 
     @PostMapping("/upload/summary")
-    public String summaryUpload(@RequestParam("file")MultipartFile file, Model model){
+    public String summaryUpload(@RequestParam("file")MultipartFile file,@RequestParam("summary") boolean summary, Model model){
         if (file.isEmpty()){
             model.addAttribute("message","The file is empty!");
             return "voucher/uploadStatus";
@@ -140,12 +140,19 @@ public class VoucherController {
                                 Collectors.summarizingDouble(voucher->voucher.getAmount())
                         )).forEach((k,v)->{
                             k.setAmount(v.getSum());
+                            System.out.println(k);
                             summaryVouchers.add(k);
                         });
 
                 //写入excel输出
 
-                writeExcel.write(summaryVouchers,new Date(),"0"+summaryVouchers.get(0).getCompanyNo());
+                if (summary){
+                    writeExcel.write(summaryVouchers);
+                }else {
+                    writeExcel.write(summaryVouchers,new Date(),"0"+summaryVouchers.get(0).getCompanyNo());
+                }
+
+                //writeExcel.write(summaryVouchers,new Date(),"0"+summaryVouchers.get(0).getCompanyNo());
 
             }catch(Exception e){
                 e.printStackTrace();

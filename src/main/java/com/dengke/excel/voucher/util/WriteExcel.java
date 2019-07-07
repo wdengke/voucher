@@ -2,6 +2,7 @@ package com.dengke.excel.voucher.util;
 
 import com.dengke.excel.voucher.model.SecondAccount;
 import com.dengke.excel.voucher.model.Voucher;
+import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.util.CellAddress;
 import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFRow;
@@ -101,6 +102,39 @@ public class WriteExcel {
         workbook.write(out);
         out.close();
 
+    }
+
+
+    public void write(List<Voucher>vouchers) throws IOException{
+        System.out.println("开始写文件....");
+        //读取模板
+        InputStream input = Thread.currentThread().getContextClassLoader().getResourceAsStream("static/template_source.xlsx");
+
+        XSSFWorkbook workbook = new XSSFWorkbook(input);
+        input.close();
+        XSSFSheet sheet = workbook.getSheetAt(0);
+        int i=1;
+        for (Voucher voucher:vouchers){
+            XSSFRow row = sheet.createRow(i);
+            row.createCell(0,CellType.STRING).setCellValue(voucher.getPkid());
+            row.createCell(1,CellType.STRING).setCellValue("0"+voucher.getCompanyNo());
+            row.createCell(2,CellType.STRING).setCellValue(voucher.getVoucherType());
+            row.createCell(3,CellType.STRING).setCellValue(voucher.getVoucherNo());
+            row.createCell(4,CellType.STRING).setCellValue(voucher.getDescript());
+            row.createCell(5,CellType.STRING).setCellValue(voucher.getAccountId());
+            row.createCell(6,CellType.STRING).setCellValue(voucher.getLoanType());
+            row.createCell(7,CellType.NUMERIC).setCellValue(voucher.getAmount());
+            row.createCell(8,CellType.STRING).setCellValue(voucher.getSecondAccountType());
+            row.createCell(9,CellType.STRING).setCellValue(voucher.getSecondAccountName());
+            row.createCell(10,CellType.STRING).setCellValue(voucher.getSecondAccountId().startsWith("1.")?"0"+voucher.getSecondAccountId():voucher.getSecondAccountId());
+            i++;
+
+        }
+        String uuid = UUID.randomUUID().toString();
+        sheet.setForceFormulaRecalculation(true);
+        OutputStream out = new FileOutputStream("C:\\VoucherUpload/" + "summary_" + uuid + ".xlsx");
+        workbook.write(out);
+        out.close();
     }
 
     private String getSecondType(Voucher voucher, int sort) {
