@@ -1,14 +1,12 @@
 package com.dengke.excel.voucher.controller;
 
 import com.alibaba.excel.EasyExcelFactory;
-import com.alibaba.excel.ExcelWriter;
 import com.alibaba.excel.metadata.Sheet;
-import com.alibaba.excel.support.ExcelTypeEnum;
 import com.dengke.excel.voucher.listener.ExcelListener;
 import com.dengke.excel.voucher.model.ImportVoucher;
 import com.dengke.excel.voucher.model.Voucher;
-import com.dengke.excel.voucher.util.SecondTypeUtil;
 import com.dengke.excel.voucher.util.WriteExcel;
+import com.dengke.excel.voucher.util.RedisUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -17,7 +15,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -31,13 +30,18 @@ public class VoucherController {
 
 
     private WriteExcel writeExcel;
+    private RedisUtil redisUtil;
+
     @Autowired
-    public  VoucherController(WriteExcel writeExcel){
+    public  VoucherController(WriteExcel writeExcel,RedisUtil redisUtil){
         this.writeExcel=writeExcel;
+        this.redisUtil=redisUtil;
     }
 
     @RequestMapping("/")
     public String index(){
+        redisUtil.set("test","1234");
+        System.out.printf(redisUtil.get("test").toString());
         return "voucher/voucher";
     }
     @PostMapping("/upload")
