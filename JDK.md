@@ -183,4 +183,26 @@
        }
    ```
 
+
+## java.lang.Byte
+
+1. 继承Number
+
+2. MIN_VALUE = -128,MAX_VALUE = 127
+
+3. 缓存
+
+   ```java
+    private static class ByteCache {
+           private ByteCache(){}
+   
+           static final Byte cache[] = new Byte[-(-128) + 127 + 1];
+   
+           static {
+               for(int i = 0; i < cache.length; i++)
+                   cache[i] = new Byte((byte)(i - 128));
+           }
+       }
+   ```
+
    
