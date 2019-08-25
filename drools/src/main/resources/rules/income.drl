@@ -1,0 +1,33 @@
+package drools.rules.order
+import com.duke.drools.model.Order;
+import com.duke.drools.model.fact.VoucherCheckResult;
+
+rule "income_1普通"
+    when
+        order:Order(orderType=="1普通")
+        checkResult:VoucherCheckResult();
+    then
+        checkResult.setVoucherResult(true);
+        checkResult.setTemplateKey("income");
+        order.getTemplateKeys().add("income");
+    end
+
+rule "income_4天猫"
+    when
+        order:Order(orderType=="4天猫")
+        checkResult:VoucherCheckResult();
+    then
+        checkResult.setTemplateKey("income");
+         order.getTemplateKeys().add("income");
+        checkResult.setVoucherResult(true);
+     end
+
+rule "income_self_shop"
+    when
+        order:Order(selfShop==true)
+        checkResult:VoucherCheckResult();
+    then
+        checkResult.setVoucherResult(true);
+        checkResult.setTemplateKey("income_self_shop");
+         order.getTemplateKeys().add("income_self_shop");
+     end
