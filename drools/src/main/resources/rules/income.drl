@@ -1,10 +1,10 @@
 package drools.rules.order
-import com.duke.drools.model.Order;
+import com.duke.drools.model.ThOrder;
 import com.duke.drools.model.fact.VoucherCheckResult;
 
 rule "income_1普通"
     when
-        order:Order(orderType=="1普通")
+        order:ThOrder(orderType=="1普通")
         checkResult:VoucherCheckResult();
     then
         checkResult.setVoucherResult(true);
@@ -14,7 +14,7 @@ rule "income_1普通"
 
 rule "income_4天猫"
     when
-        order:Order(orderType=="4天猫")
+        order:ThOrder(orderType=="4天猫")
         checkResult:VoucherCheckResult();
     then
         checkResult.setTemplateKey("income");
@@ -24,7 +24,7 @@ rule "income_4天猫"
 
 rule "income_self_shop"
     when
-        order:Order(selfShop==true)
+        order:ThOrder(selfShop==true)
         checkResult:VoucherCheckResult();
     then
         checkResult.setVoucherResult(true);

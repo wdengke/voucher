@@ -1,7 +1,8 @@
 package com.duke.drools.controller;
 
 import com.duke.drools.model.Address;
-import com.duke.drools.model.Order;
+import com.duke.drools.model.Item;
+import com.duke.drools.model.ThOrder;
 import com.duke.drools.model.fact.AddressCheckResult;
 import com.duke.drools.model.fact.VoucherCheckResult;
 import com.duke.drools.service.ReloadDroolsRulesService;
@@ -47,7 +48,7 @@ public class TestController {
     @RequestMapping("/voucher")
     public void voucher(){
         KieSession kieSession =kieContainer.newKieSession();
-        Order order=new Order();
+        ThOrder order=new ThOrder();
         order.setOrderType("1普通");
         order.setSelfShop(true);
 
@@ -67,6 +68,17 @@ public class TestController {
             System.out.println("规则校验通过");
             order.getTemplateKeys().forEach(s-> System.out.println(s));
         }
+    }
+
+    @ResponseBody
+    @RequestMapping("/test")
+    public void demo(){
+        KieSession kieSession= kieContainer.newKieSession();
+        Item item=new Item(1l,"test",100.00,200.00);
+        kieSession.insert(item);
+        kieSession.fireAllRules();
+        kieSession.destroy();
+        System.out.println(item.getCategory());
     }
 
     /**

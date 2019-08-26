@@ -1,0 +1,22 @@
+package drools.rules.test
+import com.duke.drools.model.Item;
+import com.duke.drools.model.Order;
+import com.duke.drools.model.Customer;
+import com.duke.drools.model.Customer.Category;
+
+rule "Test Item"
+    when
+        $i:Item(cost<200)
+    then
+        $i.setCategory(Item.Category.LOW_RANGE);
+     end
+
+rule "Classify Customer by order size"
+    when
+        $o:Order(orderLines.size()>5,$customer:customer) and
+        $c:Customer(this==$customer,category==Category.NA)
+    then
+        modify($c){
+            setCategory(Category.SILVER)
+        }
+     end
