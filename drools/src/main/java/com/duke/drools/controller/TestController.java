@@ -1,9 +1,8 @@
 package com.duke.drools.controller;
 
-import com.duke.drools.model.Address;
-import com.duke.drools.model.Item;
-import com.duke.drools.model.ThOrder;
+import com.duke.drools.model.*;
 import com.duke.drools.model.fact.AddressCheckResult;
+import com.duke.drools.model.fact.CheckResult;
 import com.duke.drools.model.fact.VoucherCheckResult;
 import com.duke.drools.service.ReloadDroolsRulesService;
 import org.kie.api.runtime.KieContainer;
@@ -15,6 +14,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.annotation.Resource;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 @RequestMapping("/test")
 @Controller
@@ -74,11 +75,34 @@ public class TestController {
     @RequestMapping("/test")
     public void demo(){
         KieSession kieSession= kieContainer.newKieSession();
-        Item item=new Item(1l,"test",100.00,200.00);
-        kieSession.insert(item);
-        kieSession.fireAllRules();
+       // Item item=new Item(1l,"test",100.00,200.00);
+        Order order=generateOrder();
+        kieSession.insert(order);
+        kieSession.insert(order.getCustomer());
+        kieSession.insert(order.getOrderLines().get(0));
+        kieSession.insert(order.getOrderLines().get(1));
+        kieSession.insert(order.getOrderLines().get(2));
+        kieSession.insert(order.getOrderLines().get(3));
+        kieSession.insert(order.getOrderLines().get(4));
+        kieSession.insert(order.getOrderLines().get(5));
+        kieSession.insert(order.getOrderLines().get(0).getItem());
+        kieSession.insert(order.getOrderLines().get(1).getItem());
+        kieSession.insert(order.getOrderLines().get(2).getItem());
+        kieSession.insert(order.getOrderLines().get(3).getItem());
+        kieSession.insert(order.getOrderLines().get(4).getItem());
+        kieSession.insert(order.getOrderLines().get(5).getItem());
+        CheckResult checkResult=new CheckResult();
+        kieSession.insert(checkResult);
+        int count= kieSession.fireAllRules();
         kieSession.destroy();
-        System.out.println(item.getCategory());
+        System.out.println("触发了"+count+"规则");
+        System.out.println(order.getDiscount());
+        if (!checkResult.getRules().isEmpty()){
+            System.out.println("触发了以下规则！");
+            checkResult.getRules().forEach(r->{
+                System.out.println(r);
+            });
+        }
     }
 
     /**
@@ -107,6 +131,28 @@ public class TestController {
             number=number.append(chars.charAt(rand));
         }
         return number.toString();
+    }
+
+    private Order generateOrder(){
+        Order order=new Order();
+        OrderLine orderLine=new OrderLine();
+        List<OrderLine>items=new ArrayList<>();
+        orderLine.setItem(new Item(1l,"item 1",30.0,30.0));
+        items.add(orderLine);
+        orderLine.setItem(new Item(2l,"item 2",40.0,50.0));
+        items.add(orderLine);
+        orderLine.setItem(new Item(3l,"item 3",50.0,60.0));
+        items.add(orderLine);
+        orderLine.setItem(new Item(4l,"item 4",30.0,30.0));
+        items.add(orderLine);
+        orderLine.setItem(new Item(5l,"item 5",40.0,50.0));
+        items.add(orderLine);
+        orderLine.setItem(new Item(6l,"item 6",50.0,60.0));
+        items.add(orderLine);
+        order.setItems(items);
+        Customer customer=new Customer();
+        order.setCustomer(customer);
+        return order;
     }
 
 }

@@ -3,20 +3,46 @@ import com.duke.drools.model.Item;
 import com.duke.drools.model.Order;
 import com.duke.drools.model.Customer;
 import com.duke.drools.model.Customer.Category;
+import com.duke.drools.model.Coupon;
+import com.duke.drools.model.OrderLine
+import com.duke.drools.model.Discount;
+import com.duke.drools.model.fact.CheckResult;
+//
+//rule "Test Item"
+//    when
+//        $i:Item(cost<200)
+//        $result:CheckResult()
+//    then
+//        $i.setCategory(Item.Category.LOW_RANGE);
+//        $result.setRule("Test Item");
+//        update($i);
+//     end
+//
+//rule "Classify Customer by order size"
+//    when
+//        $o:Order(orderLines.size()>5,$customer:customer) and
+//        $c:Customer(this==$customer,category==Category.NA)
+//        $result:CheckResult()
+//    then
+//        modify($c){
+//            setCategory(Category.SILVER)
+//        }
+//        insert(new Coupon($c,$o,Coupon.CouponType.POINTS));
+//         $result.setRule("Classify Customer by order size");
+//     end
 
-rule "Test Item"
-    when
-        $i:Item(cost<200)
-    then
-        $i.setCategory(Item.Category.LOW_RANGE);
-     end
 
-rule "Classify Customer by order size"
+rule "Silver Customers + High Range Order - 10% Discount"
     when
-        $o:Order(orderLines.size()>5,$customer:customer) and
-        $c:Customer(this==$customer,category==Category.NA)
+        $o:Order($line:orderLines.size()>=2,$customer:customer,discount==null)
+        $c:Customer(category==Category.SILVER,this==$customer)
+        forall(OrderLine(this memberOf $line,$item:item)
+            Item(this==$item,category == Item.Category.HIGH_RANGE)
+
+        )
+        $result:CheckResult()
     then
-        modify($c){
-            setCategory(Category.SILVER)
-        }
+        $o.setDiscount(new Discount(10.0));
+        update($o);
+         $result.setRule("Silver Customers + High Range Order - 10% Discount");
      end
